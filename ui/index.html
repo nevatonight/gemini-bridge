@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gemini Bridge</title>
+  <link rel="stylesheet" href="/ui/styles.css">
+</head>
+<body>
+<main class="app-shell">
+  <aside class="sidebar">
+    <div class="brand-row">
+      <div>
+        <h1>Gemini Bridge</h1>
+        <div class="health-line"><span id="healthDot" class="status-dot neutral"></span><span id="health" data-i18n="connecting">Подключение…</span></div>
+      </div>
+      <select id="language" class="language-select" aria-label="Language"><option value="ru">RU</option><option value="en">EN</option></select>
+    </div>
+
+    <details class="technical-meta">
+      <summary data-i18n="technicalInfo">Техническая информация</summary>
+      <div id="versionInfo" class="hint">—</div>
+    </details>
+
+    <section class="side-section">
+      <div class="section-heading"><span data-i18n="project">Проект</span><button id="newProject" class="icon-button" type="button" title="Новый проект">＋</button></div>
+      <select id="project" aria-label="Project"></select>
+      <button id="settings" class="secondary full" type="button" data-i18n="projectSettings">Настройки проекта</button>
+      <div id="workspaceState" class="subtle"></div>
+    </section>
+
+    <section id="threadSection" class="side-section" hidden>
+      <div class="section-heading"><span data-i18n="conversations">Диалоги</span><button id="newThread" class="text-button" type="button" data-i18n="newThread">Новый диалог</button></div>
+      <select id="thread" aria-label="Gemini thread"></select>
+    </section>
+
+    <section id="pendingSection" class="side-section pending-section" hidden>
+      <div class="section-heading"><span data-i18n="pendingWork">Неприменённые изменения</span></div>
+      <div id="pending" class="pending"></div>
+    </section>
+
+    <div class="spacer"></div>
+
+    <section class="account-card">
+      <div class="account-copy"><strong>Google Gemini</strong><span id="authStatus" class="subtle" data-i18n="authChecking">Проверяем вход…</span></div>
+      <button id="authHelp" class="secondary" type="button" data-i18n="googleSignIn">Войти снова</button>
+    </section>
+
+    <button id="handoff" class="quiet-action" type="button" data-i18n="copyContext">Скопировать контекст проекта</button>
+    <button id="webHelp" class="quiet-action" type="button" data-i18n="addChatgptPanel">Добавить панель в ChatGPT</button>
+  </aside>
+
+  <section class="chat">
+    <header class="chat-header">
+      <div class="mode-segment" role="radiogroup" aria-label="Gemini mode">
+        <label><input type="radio" name="mode" value="ask" checked><span data-i18n="modeAsk">Спросить</span></label>
+        <label><input type="radio" name="mode" value="review"><span data-i18n="modeReview">Анализ проекта</span></label>
+        <label><input type="radio" name="mode" value="edit"><span data-i18n="modeEdit">Изменить файлы</span></label>
+      </div>
+      <div id="runState" class="run-state"></div>
+    </header>
+    <div id="modeHelp" class="mode-help"></div>
+
+    <div class="conversation-column">
+      <div id="emptyState" class="empty-state">
+        <h2 data-i18n="emptyTitle">Чем займёмся?</h2>
+        <p data-i18n="emptyIntro">Можно просто задать вопрос или подключить папку проекта для безопасного анализа и изменений.</p>
+        <div class="empty-actions">
+          <button type="button" data-mode-pick="ask"><strong data-i18n="modeAsk">Спросить</strong><span data-i18n="emptyAsk">Обычный разговор с Gemini. Папка проекта не нужна.</span></button>
+          <button type="button" data-mode-pick="review"><strong data-i18n="modeReview">Анализ проекта</strong><span data-i18n="emptyReview">Gemini прочитает безопасную копию проекта, но ничего не изменит.</span></button>
+          <button type="button" data-mode-pick="edit"><strong data-i18n="modeEdit">Изменить файлы</strong><span data-i18n="emptyEdit">Изменения идут в отдельную копию и применяются только после Preview.</span></button>
+        </div>
+      </div>
+      <div id="messages" class="messages" aria-live="polite"></div>
+
+      <div class="composer">
+        <textarea id="prompt" rows="3" data-i18n-placeholder="promptPlaceholder" placeholder="Напиши Gemini…"></textarea>
+        <div class="composer-footer">
+          <span class="composer-hint" data-i18n="sendHint">Ctrl + Enter — отправить</span>
+          <div class="composer-actions">
+            <button id="cancel" class="secondary" type="button" hidden data-i18n="cancel">Отменить</button>
+            <button id="send" class="primary" type="button" data-i18n="send">Отправить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="projectDialog">
+  <form method="dialog" class="dialog-form">
+    <div><h2 data-i18n="projectSettings">Настройки проекта</h2><p class="dialog-lead" data-i18n="settingsLead">Папка нужна только для анализа проекта и изменения файлов.</p></div>
+    <label><span data-i18n="projectName">Название</span><input id="pname"></label>
+    <label><span data-i18n="workspace">Папка проекта</span><input id="workspace" placeholder="C:\Projects\my-project"></label>
+    <p class="hint" data-i18n="workspaceHint">Можно вставить «Копировать как путь» из Проводника — кавычки допустимы.</p>
+    <label><span data-i18n="projectContext">Контекст для Gemini</span><textarea id="context" rows="9"></textarea></label>
+    <p class="hint" data-i18n="snapshotHint">Для анализа и изменений Gemini получает только безопасную копию. Секреты, .git/.gemini, symlink и типичные build/dependency папки исключаются.</p>
+    <div class="dialog-actions"><button value="cancel" data-i18n="cancel">Отменить</button><button id="saveSettings" value="default" class="primary" data-i18n="save">Сохранить</button></div>
+  </form>
+</dialog>
+
+<dialog id="newProjectDialog">
+  <form method="dialog" class="dialog-form compact-dialog">
+    <div><h2 data-i18n="newProject">Новый проект</h2><p class="dialog-lead" data-i18n="newProjectLead">Название можно изменить позже. Папку проекта можно подключить отдельно.</p></div>
+    <label><span data-i18n="projectName">Название</span><input id="newProjectName" maxlength="120" autocomplete="off"></label>
+    <div class="dialog-actions"><button value="cancel" data-i18n="cancel">Отменить</button><button id="createProject" value="default" class="primary" data-i18n="create">Создать</button></div>
+  </form>
+</dialog>
+
+<dialog id="helpDialog">
+  <form method="dialog" class="dialog-form compact-dialog">
+    <div><h2 id="helpTitle"></h2><div id="helpBody" class="help-body"></div></div>
+    <div class="dialog-actions"><button value="default" class="primary" data-i18n="close">Закрыть</button></div>
+  </form>
+</dialog>
+
+<script src="/ui/app.js"></script>
+</body>
+</html>

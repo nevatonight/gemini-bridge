@@ -1,0 +1,16 @@
+{
+  "name": "chatgpt-gemini-bridge",
+  "version": "0.4.7",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0 <23 || >=24 <25"
+  },
+  "scripts": {
+    "test": "node --test --test-concurrency=1 tests/use-tests.mjs tests/hardening-phase-b.mjs tests/hardening-phase-c.mjs tests/hardening-phase-d-core.mjs tests/hardening-phase-d-host.mjs tests/hardening-phase-e.mjs tests/hardening-phase-f.mjs tests/hardening-phase-g.mjs tests/hardening-phase-h.mjs tests/hardening-phase-i.mjs tests/hardening-phase-j.mjs tests/hardening-phase-m.mjs tests/hardening-phase-n.mjs tests/hardening-phase-o.mjs tests/hardening-phase-p.mjs tests/hardening-phase-q.mjs tests/hardening-phase-r.mjs tests/hardening-phase-t.mjs tests/hardening-phase-u.mjs tests/hardening-phase-v.mjs tests/hardening-phase-w.mjs tests/hardening-phase-x.mjs tests/hardening-phase-y.mjs tests/hardening-phase-z.mjs tests/hardening-phase-aa.mjs tests/hardening-phase-ab.mjs tests/hardening-phase-ac.mjs tests/hardening-phase-ad.mjs tests/hardening-phase-ae.mjs tests/hardening-phase-af.mjs",
+    "host": "node src/host.mjs",
+    "health": "node src/cli.mjs health",
+    "stress:fuzz": "node --test --test-concurrency=1 tests/stress-fuzz.mjs",
+    "test:installer": "node --test --test-concurrency=1 tests/hardening-phase-k.mjs tests/hardening-phase-l.mjs"
+  }
+}
