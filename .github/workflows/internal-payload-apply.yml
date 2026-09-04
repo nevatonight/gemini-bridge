@@ -1,7 +1,7 @@
 name: Internal payload apply
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
 permissions:
   contents: write
 jobs:
