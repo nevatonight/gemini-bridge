@@ -10,44 +10,44 @@
 <main class="app-shell">
   <aside class="sidebar">
     <div class="brand-row">
-      <div>
-        <h1>Gemini Bridge</h1>
-        <div class="health-line"><span id="healthDot" class="status-dot neutral"></span><span id="health" data-i18n="connecting">Подключение…</span></div>
-      </div>
-      <select id="language" class="language-select" aria-label="Language"><option value="ru">RU</option><option value="en">EN</option></select>
+      <h1>Gemini Bridge</h1>
     </div>
-
-    <details class="technical-meta">
-      <summary data-i18n="technicalInfo">Техническая информация</summary>
-      <div id="versionInfo" class="hint">—</div>
-    </details>
 
     <section class="side-section">
       <div class="section-heading"><span data-i18n="project">Проект</span><button id="newProject" class="icon-button" type="button" title="Новый проект">＋</button></div>
       <select id="project" aria-label="Project"></select>
-      <button id="settings" class="secondary full" type="button" data-i18n="projectSettings">Настройки проекта</button>
       <div id="workspaceState" class="subtle"></div>
     </section>
 
     <section id="threadSection" class="side-section" hidden>
-      <div class="section-heading"><span data-i18n="conversations">Диалоги</span><button id="newThread" class="text-button" type="button" data-i18n="newThread">Новый диалог</button></div>
+      <div class="section-heading"><span data-i18n="history">История</span><button id="newThread" class="text-button" type="button" data-i18n="newThread">Новый диалог</button></div>
       <select id="thread" aria-label="Gemini thread"></select>
     </section>
 
-    <section id="pendingSection" class="side-section pending-section" hidden>
-      <div class="section-heading"><span data-i18n="pendingWork">Неприменённые изменения</span></div>
-      <div id="pending" class="pending"></div>
+    <section class="side-section bridge-status-section">
+      <div class="section-heading"><span data-i18n="geminiStatus">Статус Gemini</span></div>
+      <div class="account-card">
+        <div class="account-copy">
+          <div class="health-line"><span id="healthDot" class="status-dot neutral"></span><span id="health" data-i18n="connecting">Подключение…</span></div>
+          <span id="authStatus" class="subtle" data-i18n="authChecking">Проверяем вход…</span>
+        </div>
+        <button id="authHelp" class="secondary" type="button" data-i18n="googleSignIn">Войти снова</button>
+      </div>
+      <details class="technical-meta">
+        <summary data-i18n="technicalInfo">Техническая информация</summary>
+        <div id="versionInfo" class="hint">—</div>
+      </details>
     </section>
 
     <div class="spacer"></div>
 
-    <section class="account-card">
-      <div class="account-copy"><strong>Google Gemini</strong><span id="authStatus" class="subtle" data-i18n="authChecking">Проверяем вход…</span></div>
-      <button id="authHelp" class="secondary" type="button" data-i18n="googleSignIn">Войти снова</button>
+    <section class="side-section settings-section">
+      <div class="section-heading"><span data-i18n="settings">Настройки</span></div>
+      <button id="settings" class="quiet-action" type="button" data-i18n="projectSettings">Настройки проекта</button>
+      <label class="language-row"><span data-i18n="language">Язык</span><select id="language" class="language-select" aria-label="Language"><option value="ru">RU</option><option value="en">EN</option></select></label>
+      <button id="handoff" class="quiet-action" type="button" data-i18n="copyContext">Скопировать контекст проекта</button>
+      <button id="webHelp" class="quiet-action" type="button" data-i18n="addChatgptPanel">Добавить панель в ChatGPT</button>
     </section>
-
-    <button id="handoff" class="quiet-action" type="button" data-i18n="copyContext">Скопировать контекст проекта</button>
-    <button id="webHelp" class="quiet-action" type="button" data-i18n="addChatgptPanel">Добавить панель в ChatGPT</button>
   </aside>
 
   <section class="chat">
@@ -57,12 +57,12 @@
         <label><input type="radio" name="mode" value="review"><span data-i18n="modeReview">Анализ проекта</span></label>
         <label><input type="radio" name="mode" value="edit"><span data-i18n="modeEdit">Изменить файлы</span></label>
       </div>
-      <div id="runState" class="run-state"></div>
+      <div id="runState" class="run-state" role="status" aria-live="polite"></div>
     </header>
     <div id="modeHelp" class="mode-help"></div>
 
     <div class="conversation-column">
-      <div id="emptyState" class="empty-state">
+      <div id="emptyState" class="empty-state" aria-hidden="false">
         <h2 data-i18n="emptyTitle">Чем займёмся?</h2>
         <p data-i18n="emptyIntro">Можно просто задать вопрос или подключить папку проекта для безопасного анализа и изменений.</p>
         <div class="empty-actions">
@@ -73,10 +73,18 @@
       </div>
       <div id="messages" class="messages" aria-live="polite"></div>
 
+      <section id="pendingSection" class="agent-workflow" hidden aria-live="polite">
+        <div class="agent-workflow-heading">
+          <div><strong data-i18n="pendingWork">Неприменённые изменения</strong><span data-i18n="agentWorkflowHelp">Проверь изменения перед переносом в рабочую папку.</span></div>
+        </div>
+        <div id="pending" class="pending"></div>
+      </section>
+
       <div class="composer">
-        <textarea id="prompt" rows="3" data-i18n-placeholder="promptPlaceholder" placeholder="Напиши Gemini…"></textarea>
+        <div id="composerAttachments" class="composer-attachments" hidden aria-live="polite"></div>
+        <textarea id="prompt" rows="1" data-i18n-placeholder="promptPlaceholder" placeholder="Напиши Gemini…"></textarea>
         <div class="composer-footer">
-          <span class="composer-hint" data-i18n="sendHint">Ctrl + Enter — отправить</span>
+          <div class="composer-context"><span id="composerMode" class="composer-mode"></span><span class="composer-hint" data-i18n="sendHint">Ctrl + Enter — отправить</span></div>
           <div class="composer-actions">
             <button id="cancel" class="secondary" type="button" hidden data-i18n="cancel">Отменить</button>
             <button id="send" class="primary" type="button" data-i18n="send">Отправить</button>
