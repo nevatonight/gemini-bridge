@@ -1,0 +1,51 @@
+name: Internal payload apply
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.event.issue.title == 'internal: product-polish payload 20260904' && github.event.issue.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 0.4.8.1-product-polish
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Decode audited payload
+        env:
+          EVENT_PATH: ${{ github.event_path }}
+        run: |
+          python - <<'PY'
+          import base64, io, json, os, pathlib, re, tarfile
+          event=json.load(open(os.environ['EVENT_PATH'],encoding='utf-8'))
+          body=event['issue'].get('body') or ''
+          m=re.search(r'PAYLOAD-BEGIN\n([A-Za-z0-9+/=\n]+)\nPAYLOAD-END',body)
+          if not m: raise SystemExit('payload markers missing')
+          raw=base64.b64decode(''.join(m.group(1).split()),validate=True)
+          allowed={'ui/index.html','ui/app.js','ui/styles.css','web-extension/content.js','tests/hardening-phase-ad.mjs','tests/hardening-phase-ae.mjs','tests/hardening-phase-ag.mjs','package.json','MANIFEST.sha256','NEXT_AGENT_HANDOFF.md'}
+          with tarfile.open(fileobj=io.BytesIO(raw),mode='r:gz') as tf:
+              names={x.name for x in tf.getmembers() if x.isfile()}
+              if names != allowed: raise SystemExit(f'unexpected payload paths: {sorted(names ^ allowed)}')
+              for member in tf.getmembers():
+                  p=pathlib.PurePosixPath(member.name)
+                  if p.is_absolute() or '..' in p.parts: raise SystemExit('unsafe payload path')
+              tf.extractall('.')
+          PY
+      - name: Verify Product Polish contracts
+        run: |
+          node --check ui/app.js
+          node --check web-extension/content.js
+          node --test tests/hardening-phase-ab.mjs tests/hardening-phase-ad.mjs tests/hardening-phase-ae.mjs tests/hardening-phase-af.mjs tests/hardening-phase-ag.mjs
+      - name: Commit checkpoint
+        run: |
+          git config user.name 'Gemini Bridge Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add ui/index.html ui/app.js ui/styles.css web-extension/content.js tests/hardening-phase-ad.mjs tests/hardening-phase-ae.mjs tests/hardening-phase-ag.mjs package.json MANIFEST.sha256 NEXT_AGENT_HANDOFF.md
+          git diff --cached --check
+          git commit -m '0.4.8.1 Product Polish: chat flow, Agent Edit and error UX'
+          git push origin HEAD:0.4.8.1-product-polish
