@@ -6,7 +6,7 @@ permissions:
   contents: write
 jobs:
   apply:
-    if: github.event.issue.title == 'internal: product-polish payload 20260904' && github.event.issue.user.login == github.repository_owner
+    if: "${{ github.event.issue.title == 'internal: product-polish payload 20260904' && github.event.issue.user.login == github.repository_owner }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
