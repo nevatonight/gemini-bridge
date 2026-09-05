@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Gemini Bridge for ChatGPT",
+  "version": "0.4.8.8",
+  "description": "Local Gemini CLI companion panel for chatgpt.com. Uses a local Bridge Host and never intercepts ChatGPT's composer.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
